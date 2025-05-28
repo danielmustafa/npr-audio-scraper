@@ -5,11 +5,6 @@ from pyannote.audio import Pipeline
 from pydub import AudioSegment
 from urllib.parse import urlparse
 
-<<<<<<< HEAD
-=======
-HUGGINGFACE_TOKEN = None
->>>>>>> cff05ca (adding diarize)
-
 def download_audio(url: str, output_folder: str = "downloads") -> str:
     # os.makedirs(output_folder, exist_ok=True)
     # parsed = urlparse(url)
