@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "npr-audio-scraper"
+version = "0.1.0"
+description = "A Python project for scraping audio content from NPR using Playwright, BeautifulSoup, and lxml."
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+playwright = "*"
+beautifulsoup4 = "*"
+lxml = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

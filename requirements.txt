@@ -1,0 +1,10 @@
+playwright
+beautifulsoup4
+lxml
+requests
+pyannote.audio
+pydub
+onnxruntime
+torch
+resemblyzer 
+numpy

@@ -1,0 +1,12 @@
+{
+  "name": "npr-audio-scraper",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  // "dockerFile": "./Dockerfile",
+//   "features": {
+//     "ghcr.io/devcontainers/features/python:1": {
+//       "version": "3"
+//     },
+//     "ghcr.io/devcontainers/features/git:1": {}
+//   },
+  "postCreateCommand": "pip install -r requirements.txt && playwright install"
+}
