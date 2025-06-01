@@ -10,9 +10,9 @@ import re
 # 'nx-s1-5411751:nx-s1-5472563-1'
 # >>> audio_data['title']
 # 'Russia launches massive drone and missile assaults on Ukrainian cities'
-site = 'https://www.npr.org/programs/morning-edition/2025/05/26/morning-edition-for-may-26-2025'
 
-def get_soup(url: str) -> BeautifulSoup:
+
+def _get_soup(url: str) -> BeautifulSoup:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -25,11 +25,12 @@ def get_soup(url: str) -> BeautifulSoup:
         browser.close()
         return soup
 
-def main():
-    soup = get_soup(site)
+def scrape_stories(url: str) -> list[dict]:
+    soup = _get_soup(url)
 
     # Find correspondents
     # Morning edition
+    stories = list()
     articles = soup.find_all('article', class_='rundown-segment')
     for article in articles:
         byline_p = article.find('p', class_='byline-container--inline')
@@ -39,8 +40,13 @@ def main():
                 # Do something with articles that have exactly one byline span
                 correspondent_name = spans[0].get_text(strip=True)
                 audio_url = article.find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href").split('?', 1)[0]
-                print(correspondent_name)
-                print(audio_url)
+                stories.append({
+                    'correspondent_name': correspondent_name,
+                    'audio_url': audio_url
+                })
+                # print(correspondent_name)
+                # print(audio_url)
+    return stories
 
     # Find audio url
     # soup.find('article', class_='rundown-segment').find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href")

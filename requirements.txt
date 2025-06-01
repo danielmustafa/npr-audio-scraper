@@ -6,5 +6,7 @@ pyannote.audio
 pydub
 onnxruntime
 torch
+torchaudio
 resemblyzer 
 numpy
+psycopg2-binary

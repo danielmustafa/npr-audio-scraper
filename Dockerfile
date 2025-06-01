@@ -1,19 +1,26 @@
-FROM mcr.microsoft.com/devcontainers/python:3.11
+# Start from a CUDA + Python base image
+FROM nvidia/cuda:12.9.0-cudnn-runtime-ubuntu24.04
 
-# Install system dependencies
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip ffmpeg git cmake pkg-config python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Python as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+# Upgrade pip
 RUN pip install --upgrade pip
 
-RUN sudo apt-get install pkg-config cmake ffmpeg
+# Install PyTorch with CUDA 12.1 support
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# Install Python dependencies
+# Install your Python dependencies
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-# Install Playwright browsers
-RUN playwright install --with-deps
+# Install Playwright + browsers
+RUN pip install playwright && playwright install --with-deps
 
 WORKDIR /workspace
-
-
-# python 3.11
-# sudo apt-get install pkg-config cmake
