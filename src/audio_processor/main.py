@@ -4,7 +4,6 @@ import argparse
 import generate_embedding
 import correspondents_datasource
 import os
-from collections import Counter, defaultdict
 from diarize_audio import download_audio, convert_to_wav
 
 MIN_SIMILARITY_THRESHOLD = 0.80
@@ -61,7 +60,12 @@ def process_story(story, db_url):
         segment_wav_path = generate_embedding.extract_segment(wav_path, segment_for_embedding['start_time'], segment_for_embedding['end_time'])
         embedding = generate_embedding.generate_embedding(segment_wav_path)
 
-        handle_db_operations(db_url, story, embedding, wav_path, selected_segments)
+        story['correspondent_gender'] = input(f"Enter gender of correspondent {story['correspondent_name']} (M/F/U): ").strip().upper()
+        
+        if not story['correspondent_gender']:
+            story['correspondent_gender'] = 'U'  # Default to unknown if not provided
+
+        handle_db_operations(db_url, story, embedding, selected_segments)
     finally:
         # Clean up the downloaded audio file if it was downloaded in this run
         if 'downloaded_path' in locals() and downloaded_path and os.path.exists(downloaded_path):
@@ -86,15 +90,19 @@ def print_long_segments(long_segments):
     for seg in long_segments:
         print(f"Start: {seg['start_time']:.1f}s, End: {seg['end_time']:.1f}s, Duration: {seg['duration_sec']:.1f}s")
 
-def handle_db_operations(db_url, story, embedding, downloaded_path, long_segments):
-    results = correspondents_datasource.get_embeddings_by_similarity(db_url, MIN_SIMILARITY_THRESHOLD, embedding)
-    if results:
+def handle_db_operations(db_url, story, embedding, long_segments):
+    # results = correspondents_datasource.get_embeddings_by_similarity(db_url, MIN_SIMILARITY_THRESHOLD, embedding)
+    correspondent_name = story['correspondent_name']
+    correspondent_audio_url = story['audio_url']
+    correspondent_gender = story['correspondent_gender']
+    result = correspondents_datasource.get_correspondent_by_name(db_url, correspondent_name)
+    if result:
         print("Found embedding(s) with high similarity score.  Skipping creation of new correspondent...")
-        for row in results:
+        for row in result:
             print(row)
-        correspondent_id = results[0][0]  # Assuming tuple (id, ...)
+        correspondent_id = result[0]  # Assuming tuple (id, ...)
         try:
-            audio_id = correspondents_datasource.create_audio(db_url, correspondent_id, downloaded_path)
+            audio_id = correspondents_datasource.create_audio(db_url, correspondent_id, correspondent_audio_url)
             print(f"Created new audio record with id: {audio_id}")
             audio_segments = [
                 {
@@ -114,9 +122,6 @@ def handle_db_operations(db_url, story, embedding, downloaded_path, long_segment
                 raise
     else:
         print("No similarity results found. Creating new correspondent...")
-        correspondent_name = story['correspondent_name']
-        correspondent_gender = 'U'  # Assuming 'U' for unknown
-        correspondent_audio_url = story['audio_url']
         correspondent_id = correspondents_datasource.create_correspondent_from_embedding(db_url, correspondent_name, correspondent_gender, embedding)
         print(f"🗣️ Created new correspondent with id: {correspondent_id}")
         audio_id = correspondents_datasource.create_audio(db_url, correspondent_id, correspondent_audio_url)
@@ -150,6 +155,11 @@ month_map = {
 
 
 def main():
+
+    if not os.environ.get("CORRESPONDENTS_DB_CONN_URL"):
+        print("CORRESPONDENTS_DB_CONN_URL environment variable not set.")
+        return
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--add", action='store_true', help="If supplied, must supply --url and -correspondent")
     parser.add_argument("--audio_url", nargs="?", type=str, help="Start time in seconds")
@@ -177,9 +187,7 @@ def main():
             process_story(story, db_url)
 
 
-    if not db_url:
-        print("CORRESPONDENTS_DB_CONN_URL environment variable not set.")
-        return
+
 
 
 if __name__ == "__main__":

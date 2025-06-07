@@ -10,3 +10,5 @@ torchaudio
 resemblyzer 
 numpy
 psycopg2-binary
+fastapi
+uvicorn

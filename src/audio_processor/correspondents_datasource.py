@@ -29,6 +29,23 @@ def correspondent_exists(cursor, fullname) -> bool:
     """, (fullname,))
     return cursor.fetchone() is not None
 
+def get_correspondent_by_name(db_url: str, fullname: str):
+    conn = psycopg2.connect(db_url)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            select id, fullname, gender from correspondents where fullname = %s
+                       """, (fullname,))
+        
+        results = cursor.fetchone()
+        return results
+    except Exception as e:
+        print(f"❌ Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
 # Check if an embedding exists based on comparison
 # or.. Get embeddings within a certain distance
 def get_embeddings_by_similarity(db_url: str, min_threshold: float, embedding):
