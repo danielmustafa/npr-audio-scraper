@@ -145,13 +145,13 @@ def create_audio_segments(db_url: str, segments: list[dict]) -> list[int]:
     try:
         # Prepare data for bulk insert
         values = [
-            (seg['audio_id'], seg['start_time_sec'], seg['end_time_sec'])
+            (seg['audio_id'], seg['start_time_sec'], seg['end_time_sec'], seg['end_time_sec'] - seg['start_time_sec'])
             for seg in segments
         ]
         # Use execute_values for efficient bulk insert
         from psycopg2.extras import execute_values
         query = """
-            INSERT INTO audio_segments (audio_id, start_time_sec, end_time_sec)
+            INSERT INTO audio_segments (audio_id, start_time_sec, end_time_sec, duration_sec)
             VALUES %s
             RETURNING id
         """

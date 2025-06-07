@@ -20,8 +20,9 @@ CREATE TABLE audio (
 CREATE TABLE audio_segments (
     id SERIAL PRIMARY KEY,
     audio_id INT REFERENCES audio(id) ON DELETE CASCADE,
-    start_time_sec DECIMAL(10, 3) NOT NULL,
-    end_time_sec DECIMAL(10, 3) NOT NULL,
+    start_time_sec DECIMAL(10, 1) NOT NULL,
+    end_time_sec DECIMAL(10, 1) NOT NULL,
+    duration_sec DECIMAL(10, 1) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     -- Optionally: segment_embedding vector(256)
 );
