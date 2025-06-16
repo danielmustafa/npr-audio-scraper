@@ -23,6 +23,6 @@ CREATE TABLE audio_segments (
     start_time_sec DECIMAL(10, 1) NOT NULL,
     end_time_sec DECIMAL(10, 1) NOT NULL,
     duration_sec DECIMAL(10, 1) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    url TEXT UNIQUE
     -- Optionally: segment_embedding vector(256)
 );

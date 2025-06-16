@@ -1,13 +1,6 @@
-WITH random_gender AS (
-  SELECT gender
-  FROM correspondents
-  ORDER BY random()
-  limit 1
-),
-random_correspondents AS (
+with random_correspondents AS (
   SELECT id AS correspondent_id
   FROM correspondents
-  WHERE gender = (select gender from random_gender)
   ORDER BY random()
   LIMIT 10
 ),
@@ -15,9 +8,8 @@ random_segments AS (
   SELECT DISTINCT ON (corr.id)
     corr.id AS correct_correspondent_id,
     corr.fullname AS correct_correspondent_name,
-    audio.url AS audio_url,
-    asegs.start_time_sec,
-    asegs.end_time_sec
+	corr.gender AS correct_correspondent_gender,
+    asegs.public_url AS audio_url
   FROM 
     random_correspondents rc
     JOIN correspondents corr ON corr.id = rc.correspondent_id
@@ -25,7 +17,7 @@ random_segments AS (
     JOIN audio_segments asegs ON audio.id = asegs.audio_id
   ORDER BY corr.id, random()
 ),
-question_with_choices AS (
+question_with_options AS (
   SELECT 
     rs.*,
     (
@@ -36,6 +28,7 @@ question_with_choices AS (
           SELECT c.id, c.fullname
           FROM correspondents c
           WHERE c.id != rs.correct_correspondent_id
+		  AND c.gender = rs.correct_correspondent_gender
           ORDER BY random()
           LIMIT 3
         ) distractors
@@ -49,4 +42,11 @@ question_with_choices AS (
     ) AS multiple_choice
   FROM random_segments rs
 )
-SELECT * FROM question_with_choices;
+SELECT json_agg(row_to_json(payload)) FROM 
+(select
+	correct_correspondent_id correspondent_id,
+	correct_correspondent_name correspondent_name,
+	audio_url,
+	multiple_choice options
+	from question_with_options
+) payload

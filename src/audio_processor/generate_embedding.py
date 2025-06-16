@@ -1,19 +1,20 @@
 from resemblyzer import VoiceEncoder, preprocess_wav
 from pydub import AudioSegment
+from audio_editor import extract_segment
 import numpy as np
 import argparse
 import tempfile
 import os
 
-def extract_segment(audio_path: str, start_sec: float, end_sec: float) -> str:
-    """Extracts a segment and returns a temporary .wav file path."""
-    audio = AudioSegment.from_file(audio_path)
-    if start_sec and end_sec:
-        segment = audio[start_sec * 1000:end_sec * 1000]  # milliseconds
-        tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-        segment.export(tmp_wav.name, format="wav")
-        return tmp_wav.name
-    return audio_path
+# def extract_segment(audio_path: str, start_sec: float, end_sec: float) -> str:
+#     """Extracts a segment and returns a temporary .wav file path."""
+#     audio = AudioSegment.from_file(audio_path)
+#     if start_sec and end_sec:
+#         segment = audio[start_sec * 1000:end_sec * 1000]  # milliseconds
+#         tmp_wav = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+#         segment.export(tmp_wav.name, format="wav")
+#         return tmp_wav.name
+#     return audio_path
 
 def generate_embedding(segment_wav_path: str):
     print('Starting embedding generation...')
@@ -35,7 +36,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     remove_file = True if args.start and args.end else False
-    wav_file_path = extract_segment(args.audio_path, args.start, args.end)
+    wav_file_path = extract_segment(args.audio_path, args.start, args.end, "wav")
 
     try:
         print(f"Extracted segment saved to: {wav_file_path}")

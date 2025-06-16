@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+import argparse
 import re
 #  soup.find('a', href=re.compile('.*ukrainian_cities.mp3'), class_='audio-module-listen').parent.parent['data-audio']
 # '{"uid":"nx-s1-5411751:nx-s1-5472563-1","available":true,"duration":216,"title":"Russia launches massive drone and missile assaults on Ukrainian cities","audioUrl":"https:\\/\\/ondemand.npr.org\\/anon.npr-mp3\\/npr\\/me\\/2025\\/05\\/20250526_me_russia_launches_massive_drone_and_missile_assaults_on_ukrainian_cities.mp3?size=3470360&d=216863&e=nx-s1-5411751&sc=siteplayer","storyUrl":"https:\\/\\/www.npr.org\\/2025\\/05\\/26\\/nx-s1-5411751\\/russia-launches-massive-drone-and-missile-assaults-on-ukrainian-cities","slug":"Europe","program":"Morning Edition","affiliation":"","song":"","artist":"","album":"","track":0,"type":"segment","subtype":"other","skipSponsorship":false,"hasAdsWizz":false,"isStreamAudioType":false}'
@@ -55,4 +56,13 @@ def scrape_stories(url: str) -> list[dict]:
 # run script to pull all audio segments with correspondents
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", type=str, help="URL")
+    args = parser.parse_args()
+    
+    if args.url:
+        stories = scrape_stories(args.url)
+
+    for story in stories:
+        print(story)
+    
