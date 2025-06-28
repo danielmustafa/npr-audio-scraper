@@ -6,6 +6,9 @@ import os
 import re
 
 
+if "CORRESPONDENTS_DB_CONN_URL" not in os.environ:
+    raise EnvironmentError("Environment variable CORRESPONDENTS_DB_CONN_URL must be set.")
+# Initialize connection poo
 db_pool = pool.SimpleConnectionPool(
     minconn=1,
     maxconn=10,

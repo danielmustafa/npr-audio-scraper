@@ -12,14 +12,6 @@ BASE_API_PATH = "/api/audio"
 MIN_SIMILARITY_THRESHOLD = 0.80
 GCS_BUCKET_NAME = "npr_audio_quiz"
 DEFAULT_AUDIO_TYPE = "mp3"
-# order of operations
-# process diarization
-# create embedding
-# get or create correspondent
-# check audio exists
-# if not exists, create audio
-# create segment ids
-# write segments to storage
 # 
 WORKING_DIR = "downloads"
 def process_story(story, db_url):

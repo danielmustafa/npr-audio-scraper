@@ -1,6 +1,7 @@
-from google.cloud import storage
-from util import storage_service
+
 import os
+
+from util import storage_service
 
 DEFAULT_AUDIO_TYPE = "mp3"
 GCS_BUCKET_NAME = os.getenv("GCS_AUDIO_BUCKET_NAME", "npr_audio_quiz")
