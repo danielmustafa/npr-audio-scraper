@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import argparse
 import re
+import json
 #  soup.find('a', href=re.compile('.*ukrainian_cities.mp3'), class_='audio-module-listen').parent.parent['data-audio']
 # '{"uid":"nx-s1-5411751:nx-s1-5472563-1","available":true,"duration":216,"title":"Russia launches massive drone and missile assaults on Ukrainian cities","audioUrl":"https:\\/\\/ondemand.npr.org\\/anon.npr-mp3\\/npr\\/me\\/2025\\/05\\/20250526_me_russia_launches_massive_drone_and_missile_assaults_on_ukrainian_cities.mp3?size=3470360&d=216863&e=nx-s1-5411751&sc=siteplayer","storyUrl":"https:\\/\\/www.npr.org\\/2025\\/05\\/26\\/nx-s1-5411751\\/russia-launches-massive-drone-and-missile-assaults-on-ukrainian-cities","slug":"Europe","program":"Morning Edition","affiliation":"","song":"","artist":"","album":"","track":0,"type":"segment","subtype":"other","skipSponsorship":false,"hasAdsWizz":false,"isStreamAudioType":false}'
 # >>> import json
@@ -37,6 +38,7 @@ def scrape_stories(url: str) -> list[dict]:
         byline_p = article.find('p', class_='byline-container--inline')
         if byline_p:
             spans = byline_p.find_all('span', class_='byline byline--inline')
+            correspondent_names = [span.get_text(strip=True) for span in spans]
             if len(spans) == 1 and spans[0].get_text(strip=True) != 'Hosts':
                 # Do something with articles that have exactly one byline span
                 correspondent_name = spans[0].get_text(strip=True)
@@ -45,8 +47,13 @@ def scrape_stories(url: str) -> list[dict]:
                     'correspondent_name': correspondent_name,
                     'audio_url': audio_url
                 })
-                # print(correspondent_name)
-                # print(audio_url)
+            elif len(spans) > 1:
+                # Multiple correspondents
+                audio_url = article.find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href").split('?', 1)[0]
+                stories.append({
+                    'correspondents': correspondent_names,
+                    'audio_url': audio_url
+                })
     return stories
 
     # Find audio url
@@ -64,5 +71,5 @@ if __name__ == "__main__":
         stories = scrape_stories(args.url)
 
     for story in stories:
-        print(story)
+        print(json.dumps(story, ensure_ascii=False))
     

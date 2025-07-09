@@ -4,6 +4,7 @@ import argparse
 import generate_embedding
 import correspondents_datasource
 import os
+import json
 import audio_storage
 from diarize_audio import download_audio
 from audio_editor import extract_segment, convert_type
@@ -15,8 +16,13 @@ DEFAULT_AUDIO_TYPE = "mp3"
 # 
 WORKING_DIR = "downloads"
 def process_story(story, db_url):
+
+    if 'correspondents' in story:
+        story['correspondent_name'] = input(f"Select the target correspondent name or type the name: {story['correspondents']}: ").strip()
+
     print("\n======================")
-    print(f"Processing story for correspondent: {story['correspondent_name']}, \nAudio URL: {story['audio_url']}")
+    print(f"Processing story for correspondent: {story['correspondent_name']}")
+    selected_segments = []
     try:
         audio_url = story['audio_url']
         # Determine expected wav path
@@ -86,7 +92,8 @@ def process_story(story, db_url):
         # Clean up the downloaded audio file if it was downloaded in this run
         cleanup_audio(wav_audio_path)
         cleanup_audio(mp3_audio_path)
-        for seg in selected_segments:
+        
+        for seg in (selected_segments or []):
             cleanup_audio(seg["mp3_audio_path"])
 
         print(f"Completed for correspondent: {story['correspondent_name']}")
@@ -192,26 +199,47 @@ month_map = {
     '12': 'december'
 }
 
-
 def main():
-
     if not os.environ.get("CORRESPONDENTS_DB_CONN_URL"):
         print("CORRESPONDENTS_DB_CONN_URL environment variable not set.")
         return
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--add", action='store_true', help="If supplied, must supply --url and -correspondent")
-    parser.add_argument("--audio_url", nargs="?", type=str, help="Start time in seconds")
-    parser.add_argument("--correspondent", nargs="?", type=str, help="End time in seconds")
+    parser.add_argument("--add", action='store_true', help="If supplied, must supply (--audio_url and --correspondent) or --json")
+    parser.add_argument("--audio_url", nargs="?", type=str, help="Audio url for correspondent")
+    parser.add_argument("--json", nargs="?", type=str, help="JSON containing audio_url and correspondent_name")
+    parser.add_argument("--url", nargs="?", type=str, help="Url to pull all stories")
+    parser.add_argument("--correspondent", "-c", nargs="?", type=str, help="End time in seconds")
     parser.add_argument("--date", nargs="?", type=str, help="Date in YYYY-MM-DD format")
     db_url = os.environ.get("CORRESPONDENTS_DB_CONN_URL")
     args = parser.parse_args()
-    print(args)
+
+    if not any(vars(args).values()):
+        parser.print_help()
+        print("\nExample usage:")
+        print("Add specific correspondent:  python -m audio_processor.main --add --audio_url <AUDIO_URL> --correspondent <NAME>")
+        print("Process stories for specific url:  python -m audio_processor.main --url 2025-06-28")
+        print("Process ATC|ME stories for a specific date:  python -m audio_processor.main --date 2025-06-28")
+        quit()
+
+    if args.url:
+        stories = audio_scraper.scrape_stories(args.url)
+        for story in stories:
+            process_story(story, db_url)
+
     if args.add and args.audio_url and args.correspondent:
         process_story({
             'audio_url': args.audio_url,
             'correspondent_name': args.correspondent
         }, db_url)    
+
+    if args.add and args.json:
+        try:
+            data = json.loads(args.json)
+            process_story(data, db_url)
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from file {args.json}.")
+
 
     elif args.date:
         date_path = args.date.replace('-', '/')
@@ -224,10 +252,6 @@ def main():
         stories = me_stores + atc_stories
         for story in stories:
             process_story(story, db_url)
-
-
-
-
 
 if __name__ == "__main__":
     main()

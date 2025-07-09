@@ -8,6 +8,9 @@ from pyannote.audio import Pipeline
 from pydub import AudioSegment
 from urllib.parse import urlparse
 
+if "HUGGING_FACE_TOKEN" not in os.environ:
+    raise EnvironmentError("Environment variable HUGGING_FACE_TOKEN must be set.")
+
 def download_audio(url: str, output_folder: str = "downloads") -> str:
     os.makedirs(output_folder, exist_ok=True)
     parsed = urlparse(url)
@@ -20,7 +23,7 @@ def download_audio(url: str, output_folder: str = "downloads") -> str:
     with open(filepath, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
-    print(f"Saved to {filepath}")
+    print(f"\n 👂🏽 LISTEN HERE: {filepath}\n")
 
     #filepath = url
     return filepath
@@ -70,7 +73,7 @@ def consolidate_segments(segments: list[dict]) -> list[dict]:
     return consolidated
 
 def diarize_audio(wav_path: str) -> list[dict]:
-    print(f"Diarizing audio file: {wav_path}")
+    # print(f"Diarizing audio file: {wav_path}")
     start_time = time.time()
     waveform, sample_rate = torchaudio.load(wav_path)
     
