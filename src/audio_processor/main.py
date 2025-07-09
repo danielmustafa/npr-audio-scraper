@@ -20,6 +20,9 @@ def process_story(story, db_url):
     if 'correspondents' in story:
         story['correspondent_name'] = input(f"Select the target correspondent name or type the name: {story['correspondents']}: ").strip()
 
+        if story['correspondent_name'] == "":
+            return
+
     print("\n======================")
     print(f"Processing story for correspondent: {story['correspondent_name']}")
     selected_segments = []
