@@ -35,25 +35,30 @@ def scrape_stories(url: str) -> list[dict]:
     stories = list()
     articles = soup.find_all('article', class_='rundown-segment')
     for article in articles:
-        byline_p = article.find('p', class_='byline-container--inline')
-        if byline_p:
-            spans = byline_p.find_all('span', class_='byline byline--inline')
-            correspondent_names = [span.get_text(strip=True) for span in spans]
-            if len(spans) == 1 and spans[0].get_text(strip=True) != 'Hosts':
-                # Do something with articles that have exactly one byline span
-                correspondent_name = spans[0].get_text(strip=True)
-                audio_url = article.find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href").split('?', 1)[0]
-                stories.append({
-                    'correspondent_name': correspondent_name,
-                    'audio_url': audio_url
-                })
-            elif len(spans) > 1:
-                # Multiple correspondents
-                audio_url = article.find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href").split('?', 1)[0]
-                stories.append({
-                    'correspondents': correspondent_names,
-                    'audio_url': audio_url
-                })
+        try:
+            byline_p = article.find('p', class_='byline-container--inline')
+            if byline_p:
+                spans = byline_p.find_all('span', class_='byline byline--inline')
+                correspondent_names = [span.get_text(strip=True) for span in spans]
+                if len(spans) == 1 and spans[0].get_text(strip=True) != 'Hosts':
+                    # Do something with articles that have exactly one byline span
+                    correspondent_name = spans[0].get_text(strip=True)
+                    audio_url = article.find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href").split('?', 1)[0]
+                    stories.append({
+                        'correspondent_name': correspondent_name,
+                        'audio_url': audio_url
+                    })
+                elif len(spans) > 1:
+                    # Multiple correspondents
+                    audio_url = article.find('a', class_='audio-module-listen', href=re.compile('.*.mp3')).get("href").split('?', 1)[0]
+                    stories.append({
+                        'correspondents': correspondent_names,
+                        'audio_url': audio_url
+                    })
+        except Exception as e:
+            article_title = article.find('h4', class_="audio-module-title").get_text(strip=True)
+            print(f"Error processing article titled: {article_title}, Error: {e}")
+            continue
     return stories
 
     # Find audio url
